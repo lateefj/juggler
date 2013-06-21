@@ -5,12 +5,12 @@ import (
 )
 
 // Maintains the order of when the functions are added
-type Ordered struct {
+type O struct {
 	kv   *KV
 	size int // might need to do some sync stuff here?
 }
 
-func (o *Ordered) Range() chan interface{} {
+func (o *O) Range() chan interface{} {
 	l := make(chan interface{})
 	go func() { // Push them all in order on a channel :)
 		for i := range make([]int, o.size) { // Need to get them all
@@ -26,25 +26,25 @@ func (o *Ordered) Range() chan interface{} {
 }
 
 // For functions that don't take any parameters or return anything
-func (o *Ordered) AddF(f Func) {
+func (o *O) AddF(f Func) {
 	o.kv.SetF(o.size, f)
 	o.size++
 }
 // For functions that just return a value but do not take any parameters
-func (o *Ordered) AddRF(rf RFunc) {
+func (o *O) AddRF(rf RFunc) {
 	o.kv.SetRF(o.size, rf)
 	o.size++
 }
 // For function that take a value but do not return anything
-func (o *Ordered) AddPF(pf PFunc, data interface{}) {
+func (o *O) AddPF(pf PFunc, data interface{}) {
 	o.kv.SetPF(o.size, pf, data)
 	o.size++
 }
 // For functions that take a parameter and return a value (maybe should be default?)
-func (o *Ordered) AddPRF(prf PRFunc, data interface{}) {
+func (o *O) AddPRF(prf PRFunc, data interface{}) {
 	o.kv.SetPRF(o.size, prf, data)
 	o.size++
 }
-func NewOrdered() *Ordered {
-	return &Ordered{NewKV(), 0}
+func NewO() *O {
+	return &O{NewKV(), 0}
 }
