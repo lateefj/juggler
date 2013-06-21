@@ -7,7 +7,7 @@ import (
 
 // As much as reading Generics in Java or Dart makes me nocuous it would be really helpful right. It would be nice not to have to implement every possible key type.
 type KV struct {
-	M map[interface{}]*V
+	M map[interface{}]*V // Could we use int or string keys and that would make things faster?
 }
 
 // Get 

@@ -11,35 +11,13 @@ type PFunc func(data interface{})
 //  Defines a type of callback basically
 type PRFunc func(data interface{}) interface{}
 
-// Abstract way to handle when a function finishes running
-type value struct {
+// Value that holds some data element and a queue when that data elemetn is ready
+type V struct {
 	Ready bool
+	Queue chan interface{}
 	Data  interface{}
 }
 
-type V struct {
-	value
-	Queue chan interface{}
-}
-
 func newV() *V {
-	return &V{value{false, nil}, make(chan interface{}, 1)}
-}
-
-type IntV struct {
-	value
-	Queue chan int
-}
-
-func newIntV() *IntV {
-	return &IntV{value{false, nil}, make(chan int, 1)}
-}
-
-type StringV struct {
-	value
-	Queue chan string
-}
-
-func newStringV() *StringV {
-	return &StringV{value{false, nil}, make(chan string, 1)}
+	return &V{false, make(chan interface{}, 1), nil}
 }
