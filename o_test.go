@@ -7,10 +7,9 @@ import (
 func TestOrderedF(t *testing.T) {
 
 	size := 100
-	o := NewOrdered()
+	o := NewO()
 	count := 0
-	slice := make([]int, size)
-	for _ = range slice {
+	for i := 0; i < size; i++ {
 		o.AddF(func() {
 		})
 	}
@@ -24,10 +23,9 @@ func TestOrderedF(t *testing.T) {
 func TestOrderedRF(t *testing.T) {
 
 	size := 30
-	o := NewOrdered()
+	o := NewO()
 	count := 0
-	slice := make([]int, size)
-	for _ = range slice {
+	for i := 0; i < size; i++ {
 		o.AddRF(func() interface{} {
 			return fib(size)
 		})
@@ -43,10 +41,9 @@ func TestOrderedRF(t *testing.T) {
 func TestOrderedPF(t *testing.T) {
 
 	size := 30
-	o := NewOrdered()
+	o := NewO()
 	count := 0
-	slice := make([]int, size)
-	for i := range slice {
+	for i := 0; i < size; i++ {
 		o.AddPF(func(s interface{}) {
 			if s.(int) < 0 || s.(int) > size {
 				t.Errorf("Expected s to be between 0 and %d but was %d", size, s.(int))
@@ -61,18 +58,16 @@ func TestOrderedPF(t *testing.T) {
 		t.Errorf("Expected count to be 0 but it was %d", count)
 	}
 }
-func TestOrderedPRF(t *testing.T) {
 
+func TestOrderedPRF(t *testing.T) {
 	size := 30
-	o := NewOrdered()
+	o := NewO()
 	count := 0
-	slice := make([]int, size)
-	for i := range slice {
-		o.AddPRF(func(s interface{}) interface{} {
-			return fib(s.(int))
+	for i := 0; i < size; i++ {
+		o.AddPRF(func(data interface{}) interface{} {
+			return fib(data.(int))
 		}, i)
 	}
-
 	for v := range o.Range() {
 		if v != fib(count) {
 			t.Errorf("Expect value to be %d but was %d", fib(size), v)

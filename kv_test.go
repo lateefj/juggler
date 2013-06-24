@@ -23,15 +23,16 @@ func TestKVGetSetF(t *testing.T) {
 	size := 100
 	kv := NewKV()
 	runCount := 0
-	for i := range make([]int, size) {
+	for i := 0; i < size; i++ {
 		kv.SetF(i, func() {
 			runCount++
 		})
 	}
-	for i := range make([]int, size) {
+	for i := 0; i < size; i++ {
 		_, err := kv.Get(i)
 		if err != nil {
 			t.Errorf("Error trying to get valu %d from kv error: %s", i, err)
+			break
 		}
 	}
 
@@ -39,31 +40,28 @@ func TestKVGetSetF(t *testing.T) {
 		t.Errorf("Expected runcount to be %d but it was %d", size, runCount)
 	}
 	kv = NewKV()
-	for i := range make([]int, size) {
+	for i := 0; i < size; i++ {
 		kv.SetF(i, func() {
 			time.Sleep(time.Duration(i) * time.Nanosecond)
 		})
 	}
-	for _ = range make([]int, size) {
-		runCount--
+	for runCount = runCount - 1; runCount >= 0; runCount-- {
 		_, err := kv.Get(runCount)
 		if err != nil {
 			t.Errorf("Error trying to get valu %d from kv error: %s", runCount, err)
 		}
 	}
-	if runCount != 0 {
-		t.Errorf("Expected runcount to be 0 but it was %d", runCount)
-	}
 }
+
 func TestKVGetSetPRF(t *testing.T) {
 	// For SetPRF
 	kv := NewKV()
-	for i := range make([]int, fibSize) {
+	for i := 0; i < fibSize; i++ {
 		kv.SetPRF(i, func(s interface{}) interface{} {
 			return fib(s.(int))
 		}, i)
 	}
-	for i := range make([]int, fibSize) {
+	for i := 0; i < fibSize; i++ {
 		v, err := kv.Get(i)
 		if err != nil {
 			t.Errorf("Expected to have a value for %d but got error trying to get it: %s", i, err)
@@ -73,15 +71,16 @@ func TestKVGetSetPRF(t *testing.T) {
 		}
 	}
 }
+
 func TestKVGetSetPF(t *testing.T) {
 	// For SetPF
 	kv := NewKV()
-	for i := range make([]int, fibSize) {
+	for i := 0; i < fibSize; i++ {
 		kv.SetPF(i, func(s interface{}) {
 			fib(s.(int))
 		}, i)
 	}
-	for i := range make([]int, fibSize) {
+	for i := 0; i < fibSize; i++ {
 		_, err := kv.Get(i)
 		if err != nil {
 			t.Errorf("Expected to have a value for %d but got error trying to get it: %s", i, err)
