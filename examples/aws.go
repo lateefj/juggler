@@ -13,17 +13,17 @@ import (
 )
 
 const (
-	FULL_FILE_SIZE    = int64(104857600)
-	NUM_PARTIAL_FILES = 10 // Probably depends on the file size ...
-	CONTENT_TYPE      = "text/text"
-	TEST_FILE_NAME    = "juggler/test.txt"
-	RUNS              = 3 // Need to be like 5 - 10 or something
+	CONTENT_TYPE   = "text/text"
+	TEST_FILE_NAME = "juggler/test.txt"
 )
 
 type Conf struct {
-	ACCESS_KEY  string `json:"ACCESS_KEY"`
-	SECRET_KEY  string `json:"SECRET_KEY"`
-	TEST_BUCKET string `json:"TEST_BUCKET"`
+	ACCESS_KEY        string `json:"ACCESS_KEY"`
+	SECRET_KEY        string `json:"SECRET_KEY"`
+	TEST_BUCKET       string `json:"TEST_BUCKET"`
+	FULL_FILE_SIZE    int    `json:"FULL_FILE_SIZE"`
+	RUNS              int    `json:"RUNS"`
+	NUM_PARTIAL_FILES int    `json:"NUM_PARTIAL_FILES"`
 }
 
 func loadConfig() (*Conf, error) {
@@ -91,14 +91,14 @@ func getFile(i interface{}) {
 	ioutil.ReadAll(r)
 }
 
-func singleWrite(n string, b *s3.Bucket) {
-	s := newS3File(n, FULL_FILE_SIZE, b)
+func singleWrite(conf *Conf, n string, b *s3.Bucket) {
+	s := newS3File(n, int64(conf.FULL_FILE_SIZE), b)
 	storeFile(s)
 }
-func concurrentWrite(n string, b *s3.Bucket, count int) {
+func concurrentWrite(conf *Conf, n string, b *s3.Bucket, count int) {
 	o := juggler.NewO()
-	size := FULL_FILE_SIZE / NUM_PARTIAL_FILES
-	for i := 0; i < NUM_PARTIAL_FILES; i++ {
+	size := int64(conf.FULL_FILE_SIZE) / int64(conf.NUM_PARTIAL_FILES)
+	for i := 0; i < conf.NUM_PARTIAL_FILES; i++ {
 		s := newS3File(fmt.Sprintf("%s-partial-%d", n, i), size, b)
 		o.AddPF(storeFile, s)
 	}
@@ -108,15 +108,15 @@ func concurrentWrite(n string, b *s3.Bucket, count int) {
 	}
 }
 
-func singleReader(n string, b *s3.Bucket) {
-	s := newS3File(n, FULL_FILE_SIZE, b)
+func singleReader(conf *Conf, n string, b *s3.Bucket) {
+	s := newS3File(n, int64(conf.FULL_FILE_SIZE), b)
 	getFile(s)
 }
 
-func concurrentReader(n string, b *s3.Bucket, count int) {
+func concurrentReader(conf *Conf, n string, b *s3.Bucket, count int) {
 	o := juggler.NewO()
-	size := FULL_FILE_SIZE / NUM_PARTIAL_FILES
-	for i := 0; i < NUM_PARTIAL_FILES; i++ {
+	size := int64(conf.FULL_FILE_SIZE) / int64(conf.NUM_PARTIAL_FILES)
+	for i := 0; i < conf.NUM_PARTIAL_FILES; i++ {
 		s := newS3File(fmt.Sprintf("%s-partial-%d", n, i), size, b)
 		o.AddPF(getFile, s)
 	}
@@ -126,12 +126,12 @@ func concurrentReader(n string, b *s3.Bucket, count int) {
 	}
 }
 
-func avg(times []int) float32 {
-	tt := 0
+func avg(times []float64) float64 {
+	tt := float64(0)
 	for _, t := range times {
 		tt = tt + t
 	}
-	return float32(tt) / float32(len(times))
+	return tt / float64(len(times))
 }
 func main() {
 	conf, err := loadConfig()
@@ -145,45 +145,45 @@ func main() {
 	//e := ec2.New(auth, aws.USEast)
 	s := s3.New(auth, aws.USEast)
 	b := s.Bucket(conf.TEST_BUCKET)
-	sTimes := make([]int, RUNS)
-	for i := 0; i < RUNS; i++ {
+	sTimes := make([]float64, conf.RUNS)
+	for i := 0; i < conf.RUNS; i++ {
 		s := time.Now()
-		println("Ok writing file")
-		singleWrite(TEST_FILE_NAME, b)
-		e := time.Now().Second() - s.Second()
-		sTimes = append(sTimes, e)
+		singleWrite(conf, TEST_FILE_NAME, b)
+		e := time.Now().Sub(s)
+		sTimes = append(sTimes, e.Seconds())
 	}
-	a := avg(sTimes)
-	fmt.Printf("Average time to single upload is %f\n", a)
-	ctTimes := make([]int, RUNS)
-	for i := 0; i < RUNS; i++ {
+	aSingleWrite := avg(sTimes)
+	fmt.Printf("Average time to single upload is %f\n", aSingleWrite)
+	ctTimes := make([]float64, conf.RUNS)
+	for i := 0; i < conf.RUNS; i++ {
 		s := time.Now()
-		println("Ok concurrent writing file")
-		concurrentWrite(TEST_FILE_NAME, b, 10)
-		e := time.Now().Second() - s.Second()
-		ctTimes = append(ctTimes, e)
+		concurrentWrite(conf, TEST_FILE_NAME, b, 10)
+		e := time.Now().Sub(s)
+		ctTimes = append(ctTimes, e.Seconds())
 	}
-	a = avg(ctTimes)
-	fmt.Printf("Average time to 10 concurrent upload is %f\n", a)
-	sTimes = make([]int, RUNS)
-	for i := 0; i < RUNS; i++ {
+	aConWrite := avg(ctTimes)
+	fmt.Printf("Average time to 10 concurrent upload is %f\n", aConWrite)
+	writeSpeedUp := aSingleWrite / aConWrite
+	fmt.Printf("Concurrent speed up %f \n", writeSpeedUp)
+	rsTimes := make([]float64, conf.RUNS)
+	for i := 0; i < conf.RUNS; i++ {
 		s := time.Now()
-		println("Ok writing file")
-		singleReader(TEST_FILE_NAME, b)
-		e := time.Now().Second() - s.Second()
-		sTimes = append(sTimes, e)
+		singleReader(conf, TEST_FILE_NAME, b)
+		e := time.Now().Sub(s)
+		rsTimes = append(rsTimes, e.Seconds())
 	}
-	a = avg(sTimes)
-	fmt.Printf("Average time to single reading is %f\n", a)
-	ctTimes = make([]int, RUNS)
-	for i := 0; i < RUNS; i++ {
+	aSingleRead := avg(rsTimes)
+	fmt.Printf("Average time to single reading is %f\n", aSingleRead)
+	rctTimes := make([]float64, conf.RUNS)
+	for i := 0; i < conf.RUNS; i++ {
 		s := time.Now()
-		println("Ok concurrent writing file")
-		concurrentReader(TEST_FILE_NAME, b, 10)
-		e := time.Now().Second() - s.Second()
-		ctTimes = append(ctTimes, e)
+		concurrentReader(conf, TEST_FILE_NAME, b, 10)
+		e := time.Now().Sub(s)
+		rctTimes = append(rctTimes, e.Seconds())
 	}
-	a = avg(ctTimes)
-	fmt.Printf("Average time to 10 concurrent reading is %f\n", a)
+	aConRead := avg(rctTimes)
+	fmt.Printf("Average time to 10 concurrent reading is %f\n", aConRead)
+	readSpeedUp := aSingleRead / aConRead
+	fmt.Printf("Concurrent speed up %f \n", readSpeedUp)
 
 }
