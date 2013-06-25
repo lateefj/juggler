@@ -1,10 +1,5 @@
 package juggler
 
-import (
-	//"fmt"
-	"io"
-)
-
 // Maintains the order of when the functions are added
 type O struct {
 	kv   *KV
@@ -48,34 +43,4 @@ func (o *O) AddPRF(prf PRFunc, data interface{}) {
 }
 func NewO() *O {
 	return &O{NewKV(), 0}
-}
-
-// Specific implementation for reader
-type OReader struct {
-	kv   *KIRV
-	size int // might need to do some sync stuff here?
-}
-
-func (o *OReader) Range() chan io.Reader {
-	l := make(chan io.Reader)
-	go func() { // Push them all in order on a channel :)
-		for i := 0; i < o.size; i++ {
-			v, err := o.kv.Get(i)
-			if err != nil { // Something really bad happens if we panic
-				panic(err)
-			}
-			l <- v
-		}
-		close(l)
-	}()
-	return l
-}
-
-// For functions that take a parameter and return a value (maybe should be default?)
-func (o *OReader) AddPRF(prf RVFunc, data io.Reader) {
-	o.kv.SetPRF(o.size, prf, data)
-	o.size++
-}
-func NewOReader() *OReader {
-	return &OReader{NewKIRV(), 0}
 }

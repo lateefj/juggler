@@ -1,8 +1,5 @@
 package juggler
 
-import (
-	"io"
-)
 // All possible combination of calling a funciton types here 
 // There will be lots of type assertion :(
 
@@ -24,18 +21,4 @@ type V struct {
 
 func newV() *V {
 	return &V{false, make(chan interface{}, 1), nil}
-}
-
-// Basically an io.Reader implementation 
-type RVFunc func(data io.Reader) io.Reader
-
-// Value that holds some data element and a queue when that data elemetn is ready
-type RV struct {
-	Ready bool
-	Queue chan io.Reader
-	Data  io.Reader
-}
-
-func NewRV() *RV {
-	return &RV{false, make(chan io.Reader, 1), nil}
 }
