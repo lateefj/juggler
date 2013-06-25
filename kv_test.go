@@ -53,25 +53,6 @@ func TestKVGetSetF(t *testing.T) {
 	}
 }
 
-func TestKVGetSetPRF(t *testing.T) {
-	// For SetPRF
-	kv := NewKV()
-	for i := 0; i < fibSize; i++ {
-		kv.SetPRF(i, func(s interface{}) interface{} {
-			return fib(s.(int))
-		}, i)
-	}
-	for i := 0; i < fibSize; i++ {
-		v, err := kv.Get(i)
-		if err != nil {
-			t.Errorf("Expected to have a value for %d but got error trying to get it: %s", i, err)
-		}
-		if v.(int) != fib(i) {
-			t.Errorf("Houston we have a problem expected %d but got %d", fib(i), v)
-		}
-	}
-}
-
 func TestKVGetSetPF(t *testing.T) {
 	// For SetPF
 	kv := NewKV()
@@ -104,6 +85,25 @@ func TestKVGetSetPR(t *testing.T) {
 		}
 		if v.(int) != 2 {
 			t.Errorf("Huston we have a problem expected %d but got %d", 2, v)
+		}
+	}
+}
+
+func TestKVGetSetPRF(t *testing.T) {
+	// For SetPRF
+	kv := NewKV()
+	for i := 0; i < fibSize; i++ {
+		kv.SetPRF(i, func(s interface{}) interface{} {
+			return fib(s.(int))
+		}, i)
+	}
+	for i := 0; i < fibSize; i++ {
+		v, err := kv.Get(i)
+		if err != nil {
+			t.Errorf("Expected to have a value for %d but got error trying to get it: %s", i, err)
+		}
+		if v.(int) != fib(i) {
+			t.Errorf("Houston we have a problem expected %d but got %d", fib(i), v)
 		}
 	}
 }
