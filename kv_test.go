@@ -67,7 +67,7 @@ func TestKVGetSetPRF(t *testing.T) {
 			t.Errorf("Expected to have a value for %d but got error trying to get it: %s", i, err)
 		}
 		if v.(int) != fib(i) {
-			t.Errorf("Huston we have a problem expected %d but got %d", fib(i), v)
+			t.Errorf("Houston we have a problem expected %d but got %d", fib(i), v)
 		}
 	}
 }
