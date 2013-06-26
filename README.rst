@@ -14,7 +14,6 @@ Ordered Sice Example
 --------------------
 
 .. code:: go
-   :number-lines:
 
   size := 30
   o := NewO()
@@ -36,7 +35,6 @@ Map Example
 -----------
 
 .. code:: go
-   :number-lines:
 
   // For SetPRF
   kv := NewKV()
