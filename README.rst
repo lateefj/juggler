@@ -14,6 +14,8 @@ Ordered Sice Example
 --------------------
 
 .. code:: go
+   :number-lines: 100
+
 
   size := 30
   o := NewO()
