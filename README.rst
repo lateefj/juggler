@@ -13,7 +13,7 @@ These are coneptual implemntation, if used they should optmized so that the type
 Ordered Sice Example
 --------------------
 
-.. code-block:: go
+.. code:: go
    :number-lines:
 
   size := 30
@@ -35,7 +35,7 @@ Ordered Sice Example
 Map Example
 -----------
 
-.. code-block:: go
+.. code:: go
    :number-lines:
 
   // For SetPRF
